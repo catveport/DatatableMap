@@ -642,7 +642,7 @@ namespace DataTableMap
             }
             else if (prop.PropertyType.BaseType == typeof(System.Enum))
             {
-                ParseEnum<T>(prop, entity, value);
+                ParseEnum<T>(prop, entity, value, false);
             }
             else if (prop.PropertyType.IsGenericType && prop.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>)
                 && prop.PropertyType.GetGenericArguments().First().BaseType == typeof(System.Enum))
