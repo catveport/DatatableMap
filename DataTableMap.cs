@@ -103,7 +103,7 @@ namespace DataTableMap
             if (parentObj != null)
             {
                 var propertyInfo = typeof(TEntity).GetProperties()
-                    .Where(p => p.PropertyType == parentObj.GetType() && p.GetCustomAttributes(typeof(ParentNavegation), true).Any()).SingleOrDefault();
+                    .Where(p => p.PropertyType == parentObj.GetType() && p.GetCustomAttributes(typeof(ParentNavigation), true).Any()).SingleOrDefault();
                 if (propertyInfo != null)
                 {
                     propertyInfo.SetValue(obj, parentObj, null);
@@ -598,10 +598,10 @@ namespace DataTableMap
     }
 
     /// <summary>
-    /// Attribute used to indicate in a related entity a navegation to its parent entity
+    /// Attribute used to indicate in a related entity a Navigation to its parent entity
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Property)]
-    public class ParentNavegation : System.Attribute
+    public class ParentNavigation : System.Attribute
     {
 
     }
@@ -643,6 +643,11 @@ namespace DataTableMap
             else if (prop.PropertyType.BaseType == typeof(System.Enum))
             {
                 ParseEnum<T>(prop, entity, value);
+            }
+            else if (prop.PropertyType.IsGenericType && prop.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>)
+                && prop.PropertyType.GetGenericArguments().First().BaseType == typeof(System.Enum))
+            {
+                ParseEnum<T>(prop, entity, value, true);
             }
             else
             {
@@ -788,12 +793,19 @@ namespace DataTableMap
             }
         }
 
-        public virtual void ParseEnum<T>(PropertyInfo prop, T entity, object value)
+        public virtual void ParseEnum<T>(PropertyInfo prop, T entity, object value, bool isNullable)
         {
-
-            if (value != null && !string.IsNullOrEmpty(value.ToString()))
-                prop.SetValue(entity, Enum.ToObject(prop.PropertyType, Enum.Parse(prop.PropertyType, value.ToString(), true)), null);
-
+            if (isNullable)
+            {
+                var type = prop.PropertyType.GetGenericArguments().First();
+                var enumValue = Enum.ToObject(type, Enum.Parse(type, value as string, true));
+                prop.SetValue(entity, enumValue, null);
+            }
+            else
+            {
+                if (value != null && !string.IsNullOrEmpty(value.ToString()))
+                    prop.SetValue(entity, Enum.ToObject(prop.PropertyType, Enum.Parse(prop.PropertyType, value.ToString(), true)), null);
+            }
         }
 
     }
