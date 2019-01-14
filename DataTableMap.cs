@@ -797,9 +797,8 @@ namespace DataTableMap
         {
             if (isNullable)
             {
-                var type = prop.PropertyType.GetGenericArguments().First();
-                var enumValue = Enum.ToObject(type, Enum.Parse(type, value as string, true));
-                prop.SetValue(entity, enumValue, null);
+                 var type = prop.PropertyType.GetGenericArguments().First();
+                 var enumValue = value == null ? null: Enum.ToObject(type, Enum.Parse(type, value.ToString(), true));  prop.SetValue(entity, enumValue, null);
             }
             else
             {
