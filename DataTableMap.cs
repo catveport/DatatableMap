@@ -132,8 +132,8 @@ namespace DataTableMap
                     var attr = prop.GetCustomAttributes(typeof(ColumnName), true);
                     string name = attr.Any() ? (attr.Single() as ColumnName).Name : prop.Name;
 
-                    if(dataRow.Table.Columns.Contains(name) && dataRow[name] != DBNull.Value)
-                    { 
+                    if (dataRow.Table.Columns.Contains(name) && dataRow[name] != DBNull.Value)
+                    {
                         var value = dataRow[name];
                         convert.Convert<TEntity>(prop, obj, value);
                     }
@@ -160,7 +160,7 @@ namespace DataTableMap
                 foreach (var prop in propertiesOneToOne)
                 {
                     var oneToOneAttrs = prop.GetCustomAttributes(typeof(OneToOneRelation), true);
-                    
+
                     if (oneToOneAttrs.Count() > 1)
                         throw new System.InvalidOperationException(string.Format("Property {0} contains a duplicate attribute", prop.Name));
 
@@ -206,7 +206,7 @@ namespace DataTableMap
 
                         if (!string.IsNullOrWhiteSpace(attr.SiblingKey) && !string.IsNullOrWhiteSpace(attr.ParentKey))
                         {
-                            if(propertyParentKey == null)
+                            if (propertyParentKey == null)
                                 throw new ArgumentException(string.Format("One to one relational attributes are required, ParentKey ({0}) property was not found", attr.ParentKey));
 
                             funcOneToOne = (r) =>
@@ -402,7 +402,7 @@ namespace DataTableMap
                 return string.Equals((a as ColumnName).Name, attrParentKey, StringComparison.OrdinalIgnoreCase);
             });
 
-            if(propertyParentKeys.Count() > 1)
+            if (propertyParentKeys.Count() > 1)
                 throw new System.InvalidOperationException(string.Format("More than one property contains an attribute ColumnName with the Name:{0}", attrParentKey));
 
             var propertyParentKey = propertyParentKeys.SingleOrDefault();
@@ -417,396 +417,426 @@ namespace DataTableMap
             return propertyParentKey;
         }
 
-       }
 
-    /// <summary>
-    /// Attribute used to indicate properties that will not be considered during the conversion.
-    /// </summary>
-    [System.AttributeUsage(System.AttributeTargets.Property)]
-    public class NotMapped : System.Attribute
-    {
-    }
-
-    /// <summary>
-    /// Attribute used to indicate one to many properties, with their key/s. 
-    /// </summary>
-    [System.AttributeUsage(System.AttributeTargets.Property)]
-    public class OneToManyRelation : System.Attribute
-    {
-        private string _datatableName;
-        private string[] _parentKeys;
-        private string[] _childrenKeys;
-        private string _parentKey;
-        private string _childrenKey;
-
-        public OneToManyRelation(string tableName, string parentKey, string childrenKey)
+        /// <summary>
+        /// Attribute used to indicate properties that will not be considered during the conversion.
+        /// </summary>
+        [System.AttributeUsage(System.AttributeTargets.Property)]
+        public class NotMapped : System.Attribute
         {
-            _datatableName = tableName;
-            _parentKey = parentKey;
-            _childrenKey = childrenKey;
         }
 
-        public OneToManyRelation(string tableName, string[] parentKeys, string[] childrenKeys)
+        /// <summary>
+        /// Attribute used to indicate one to many properties, with their key/s. 
+        /// </summary>
+        [System.AttributeUsage(System.AttributeTargets.Property)]
+        public class OneToManyRelation : System.Attribute
         {
-            _datatableName = tableName;
-            _parentKeys = parentKeys;
-            _childrenKeys = childrenKeys;
-        }
+            private string _datatableName;
+            private string[] _parentKeys;
+            private string[] _childrenKeys;
+            private string _parentKey;
+            private string _childrenKey;
 
-        public string TableName
-        {
-            get
+            public OneToManyRelation(string tableName, string parentKey, string childrenKey)
             {
-                return _datatableName;
+                _datatableName = tableName;
+                _parentKey = parentKey;
+                _childrenKey = childrenKey;
             }
-        }
 
-        public string[] ParentKeys
-        {
-            get
+            public OneToManyRelation(string tableName, string[] parentKeys, string[] childrenKeys)
             {
-                return _parentKeys;
+                _datatableName = tableName;
+                _parentKeys = parentKeys;
+                _childrenKeys = childrenKeys;
             }
-        }
 
-        public string[] ChildrenKeys
-        {
-            get
+            public string TableName
             {
-                return _childrenKeys;
-            }
-        }
-
-        public string ParentKey
-        {
-            get
-            {
-                return _parentKey;
-            }
-        }
-
-        public string ChildrenKey
-        {
-            get
-            {
-                return _childrenKey;
-            }
-        }
-
-    }
-
-    /// <summary>
-    /// Attribute used to indicate one to one properties, with their key/s. 
-    /// </summary>
-    [System.AttributeUsage(System.AttributeTargets.Property)]
-    public class OneToOneRelation : System.Attribute
-    {
-        private string _datatableName;
-        private string[] _parentKeys;
-        private string[] _siblingKeys;
-        private string _parentKey;
-        private string _siblingKey;
-        private bool _required;
-
-
-        public OneToOneRelation(string tableName, string parentKey, string siblingKey, bool required = false)
-        {
-            _datatableName = tableName;
-            _parentKey = parentKey;
-            _siblingKey = siblingKey;
-            _required = required;
-        }
-
-        public OneToOneRelation(string tableName, string[] parentKeys, string[] siblingKeys, bool required = false)
-        {
-            _datatableName = tableName;
-            _parentKeys = parentKeys;
-            _siblingKeys = siblingKeys;
-            _required = required;
-        }
-
-        public string TableName
-        {
-            get
-            {
-                return _datatableName;
-            }
-        }
-
-        public string[] ParentKeys
-        {
-            get
-            {
-                return _parentKeys;
-            }
-        }
-
-        public string[] SiblingKeys
-        {
-            get
-            {
-                return _siblingKeys;
-            }
-        }
-
-        public string ParentKey
-        {
-            get
-            {
-                return _parentKey;
-            }
-        }
-
-        public string SiblingKey
-        {
-            get
-            {
-                return _siblingKey;
-            }
-        }
-        public bool Required
-        {
-            get
-            {
-                return _required;
-            }
-        }
-
-
-    }
-
-    /// <summary>
-    /// Attribute used to indicate the colunm to be use to convert the data to this property.
-    /// </summary>
-    [System.AttributeUsage(System.AttributeTargets.Property)]
-    public class ColumnName : System.Attribute
-    {
-        private string _name;
-
-        public ColumnName(string name)
-        {
-            _name = name;
-        }
-
-        public string Name
-        {
-            get
-            {
-                return _name;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Attribute used to indicate in a related entity a Navigation to its parent entity
-    /// </summary>
-    [System.AttributeUsage(System.AttributeTargets.Property)]
-    public class ParentNavigation : System.Attribute
-    {
-
-    }
-
-    /// <summary>
-    /// Convert to primmitive class.
-    /// </summary>
-    public class ConvertToPrimitive
-    {
-        public void Convert<T>(PropertyInfo prop, T entity, object value)
-        {
-            if (prop.PropertyType == typeof(string))
-                ConvertString<T>(prop, entity, value);
-
-            else if (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(int?))
-            {
-                ConvertInt<T>(prop, entity, value);
-            }
-            else if (prop.PropertyType == typeof(long) || prop.PropertyType == typeof(long?))
-            {
-                ConvertLong<T>(prop, entity, value);
-            }
-            else if (prop.PropertyType == typeof(DateTime) || prop.PropertyType == typeof(Nullable<DateTime>))
-            {
-                ConvertDate<T>(prop, entity, value);
-            }
-            else if (prop.PropertyType == typeof(decimal) || prop.PropertyType == typeof(decimal?))
-            {
-                ConvertDecimal<T>(prop, entity, value);
-            }
-            else if (prop.PropertyType == typeof(double) || prop.PropertyType == typeof(double?))
-            {
-                ConvertDouble<T>(prop, entity, value);
-            }
-            else if (prop.PropertyType == typeof(bool) || prop.PropertyType == typeof(bool?))
-            {
-                ParseBoolean<T>(prop, entity, value);
-            }
-            else if (prop.PropertyType.BaseType == typeof(System.Enum))
-            {
-                ParseEnum<T>(prop, entity, value, false);
-            }
-            else if (prop.PropertyType.IsGenericType && prop.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>)
-                && prop.PropertyType.GetGenericArguments().First().BaseType == typeof(System.Enum))
-            {
-                ParseEnum<T>(prop, entity, value, true);
-            }
-            else
-            {
-                var property = prop.PropertyType;
-                if (property.IsGenericType && property.GetGenericTypeDefinition() == typeof(Nullable<>))
-                    property = property.GetGenericArguments()[0];
-                //set property value
-                try
+                get
                 {
-                    prop.SetValue(entity, System.Convert.ChangeType(value, property, System.Globalization.CultureInfo.CurrentCulture), null);
+                    return _datatableName;
                 }
-                catch(Exception ex)
-                {
+            }
 
+            public string[] ParentKeys
+            {
+                get
+                {
+                    return _parentKeys;
+                }
+            }
+
+            public string[] ChildrenKeys
+            {
+                get
+                {
+                    return _childrenKeys;
+                }
+            }
+
+            public string ParentKey
+            {
+                get
+                {
+                    return _parentKey;
+                }
+            }
+
+            public string ChildrenKey
+            {
+                get
+                {
+                    return _childrenKey;
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// Attribute used to indicate one to one properties, with their key/s. 
+        /// </summary>
+        [System.AttributeUsage(System.AttributeTargets.Property)]
+        public class OneToOneRelation : System.Attribute
+        {
+            private string _datatableName;
+            private string[] _parentKeys;
+            private string[] _siblingKeys;
+            private string _parentKey;
+            private string _siblingKey;
+            private bool _required;
+
+
+            public OneToOneRelation(string tableName, string parentKey, string siblingKey, bool required = false)
+            {
+                _datatableName = tableName;
+                _parentKey = parentKey;
+                _siblingKey = siblingKey;
+                _required = required;
+            }
+
+            public OneToOneRelation(string tableName, string[] parentKeys, string[] siblingKeys, bool required = false)
+            {
+                _datatableName = tableName;
+                _parentKeys = parentKeys;
+                _siblingKeys = siblingKeys;
+                _required = required;
+            }
+
+            public string TableName
+            {
+                get
+                {
+                    return _datatableName;
+                }
+            }
+
+            public string[] ParentKeys
+            {
+                get
+                {
+                    return _parentKeys;
+                }
+            }
+
+            public string[] SiblingKeys
+            {
+                get
+                {
+                    return _siblingKeys;
+                }
+            }
+
+            public string ParentKey
+            {
+                get
+                {
+                    return _parentKey;
+                }
+            }
+
+            public string SiblingKey
+            {
+                get
+                {
+                    return _siblingKey;
+                }
+            }
+            public bool Required
+            {
+                get
+                {
+                    return _required;
+                }
+            }
+
+
+        }
+
+        /// <summary>
+        /// Attribute used to indicate the colunm to be use to convert the data to this property.
+        /// </summary>
+        [System.AttributeUsage(System.AttributeTargets.Property)]
+        public class ColumnName : System.Attribute
+        {
+            private string _name;
+
+            public ColumnName(string name)
+            {
+                _name = name;
+            }
+
+            public string Name
+            {
+                get
+                {
+                    return _name;
                 }
             }
         }
 
-        public virtual void ConvertString<T>(PropertyInfo prop, T entity, object value)
+        /// <summary>
+        /// Attribute used to indicate in a related entity a Navigation to its parent entity
+        /// </summary>
+        [System.AttributeUsage(System.AttributeTargets.Property)]
+        public class ParentNavigation : System.Attribute
         {
-            if (value != null)
-                prop.SetValue(entity, value.ToString().Trim(), null);
-            else
-                prop.SetValue(entity, null, null);
+
         }
 
-        public virtual void ConvertInt<T>(PropertyInfo prop, T entity, object value)
+        /// <summary>
+        /// Convert to primmitive class.
+        /// </summary>
+        public class ConvertToPrimitive
         {
-            var type = prop.PropertyType;
-            int resul;
+            public void Convert<T>(PropertyInfo prop, T entity, object value)
+            {
+                if (prop.PropertyType == typeof(string))
+                    ConvertString<T>(prop, entity, value);
 
-            if (value != null && !string.IsNullOrEmpty(value.ToString()) && int.TryParse(value.ToString(), out resul))
-            {
-                prop.SetValue(entity, resul, null);
-            }
-            else
-            {
-                prop.SetValue(entity, null, null);
-            }
-        }
+                else if (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(int?))
+                {
+                    ConvertInt<T>(prop, entity, value);
+                }
+                else if (prop.PropertyType == typeof(long) || prop.PropertyType == typeof(long?))
+                {
+                    ConvertLong<T>(prop, entity, value);
+                }
+                else if (prop.PropertyType == typeof(DateTime) || prop.PropertyType == typeof(Nullable<DateTime>))
+                {
+                    ConvertDate<T>(prop, entity, value);
+                }
+                else if (prop.PropertyType == typeof(decimal) || prop.PropertyType == typeof(decimal?))
+                {
+                    ConvertDecimal<T>(prop, entity, value);
+                }
+                else if (prop.PropertyType == typeof(double) || prop.PropertyType == typeof(double?))
+                {
+                    ConvertDouble<T>(prop, entity, value);
+                }
+                else if (prop.PropertyType == typeof(float) || prop.PropertyType == typeof(float?))
+                {
+                    ConvertFloat<T>(prop, entity, value);
+                }
+                else if (prop.PropertyType == typeof(bool) || prop.PropertyType == typeof(bool?))
+                {
+                    ParseBoolean<T>(prop, entity, value);
+                }
+                else if (prop.PropertyType.BaseType == typeof(System.Enum))
+                {
+                    ParseEnum<T>(prop, entity, value, false);
+                }
+                else if (prop.PropertyType.IsGenericType && prop.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>)
+                    && prop.PropertyType.GetGenericArguments().First().BaseType == typeof(System.Enum))
+                {
+                    ParseEnum<T>(prop, entity, value, true);
+                }
+                else
+                {
+                    var property = prop.PropertyType;
+                    if (property.IsGenericType && property.GetGenericTypeDefinition() == typeof(Nullable<>))
+                        property = property.GetGenericArguments()[0];
+                    //set property value
+                    try
+                    {
+                        prop.SetValue(entity, System.Convert.ChangeType(value, property, System.Globalization.CultureInfo.CurrentCulture), null);
+                    }
+                    catch (Exception)
+                    {
 
-        public virtual void ConvertLong<T>(PropertyInfo prop, T entity, object value)
-        {
-            var type = prop.PropertyType;
-            long resul;
+                    }
+                }
+            }
 
-            if (value != null && !string.IsNullOrEmpty(value.ToString()) && long.TryParse(value.ToString(), out resul))
+            public virtual void ConvertString<T>(PropertyInfo prop, T entity, object value)
             {
-                prop.SetValue(entity, resul, null);
+                if (value != null)
+                    prop.SetValue(entity, value.ToString().Trim(), null);
+                else
+                    prop.SetValue(entity, null, null);
             }
-            else
-            {
-                prop.SetValue(entity, null, null);
-            }
-        }
 
-        public virtual void ConvertDecimal<T>(PropertyInfo prop, T entity, object value)
-        {
-            var type = prop.PropertyType;
-            decimal resul;
+            public virtual void ConvertInt<T>(PropertyInfo prop, T entity, object value)
+            {
+                var type = prop.PropertyType;
+                int resul;
 
-            if (value != null && !string.IsNullOrEmpty(value.ToString()) && decimal.TryParse(value.ToString(), out resul))
-            {
-                prop.SetValue(entity, resul, null);
+                if (value != null && !string.IsNullOrEmpty(value.ToString()) && int.TryParse(value.ToString(), out resul))
+                {
+                    prop.SetValue(entity, resul, null);
+                }
+                else
+                {
+                    prop.SetValue(entity, null, null);
+                }
             }
-            else
-            {
-                prop.SetValue(entity, null, null);
-            }
-        }
 
-        public virtual void ConvertDouble<T>(PropertyInfo prop, T entity, object value)
-        {
-            var type = prop.PropertyType;
-            double resul;
+            public virtual void ConvertLong<T>(PropertyInfo prop, T entity, object value)
+            {
+                var type = prop.PropertyType;
+                long resul;
 
-            if (value != null && !string.IsNullOrEmpty(value.ToString()) && double.TryParse(value.ToString(), out resul))
-            {
-                prop.SetValue(entity, resul, null);
+                if (value != null && !string.IsNullOrEmpty(value.ToString()) && long.TryParse(value.ToString(), out resul))
+                {
+                    prop.SetValue(entity, resul, null);
+                }
+                else
+                {
+                    prop.SetValue(entity, null, null);
+                }
             }
-            else
-            {
-                prop.SetValue(entity, null, null);
-            }
-        }
 
-        public virtual void ConvertDate<T>(PropertyInfo prop, T entity, object value)
-        {
-            DateTime date;
-            bool isValid = DateTime.TryParse(value.ToString(), out date);
-            if (isValid)
+            public virtual void ConvertDecimal<T>(PropertyInfo prop, T entity, object value)
             {
-                prop.SetValue(entity, date, null);
+                var type = prop.PropertyType;
+                decimal resul;
+
+                if (value != null && !string.IsNullOrEmpty(value.ToString()) && decimal.TryParse(value.ToString(), out resul))
+                {
+                    prop.SetValue(entity, resul, null);
+                }
+                else
+                {
+                    prop.SetValue(entity, null, null);
+                }
             }
-            else
+
+            public virtual void ConvertFloat<T>(PropertyInfo prop, T entity, object value)
             {
-                //Making an assumption here about the format of dates in the source data.
-                isValid = DateTime.TryParseExact(value.ToString(), "yyyy-MM-dd", new CultureInfo("en-US"), DateTimeStyles.AssumeLocal, out date);
+                var type = prop.PropertyType;
+                float resul;
+
+                if (value != null && !string.IsNullOrEmpty(value.ToString()) && float.TryParse(value.ToString(), out resul))
+                {
+                    prop.SetValue(entity, resul, null);
+                }
+                else
+                {
+                    prop.SetValue(entity, null, null);
+                }
+            }
+
+            public virtual void ConvertDouble<T>(PropertyInfo prop, T entity, object value)
+            {
+                var type = prop.PropertyType;
+                double resul;
+
+                if (value != null && !string.IsNullOrEmpty(value.ToString()) && double.TryParse(value.ToString(), out resul))
+                {
+                    prop.SetValue(entity, resul, null);
+                }
+                else
+                {
+                    prop.SetValue(entity, null, null);
+                }
+            }
+
+            public virtual void ConvertDate<T>(PropertyInfo prop, T entity, object value)
+            {
+                if(value == null)
+                {
+                    prop.SetValue(entity, null, null);
+                    return;
+                }
+
+                DateTime date;
+                bool isValid = DateTime.TryParse(value.ToString(), out date);
                 if (isValid)
                 {
                     prop.SetValue(entity, date, null);
                 }
-            }
-        }
-
-        public virtual void ParseBoolean<T>(PropertyInfo prop, T entity, object value)
-        {
-            var type = prop.PropertyType;
-            bool resul;
-
-            if (value != null && !string.IsNullOrEmpty(value.ToString()) && bool.TryParse(value.ToString(), out resul))
-            {
-                prop.SetValue(entity, resul, null);
-            }
-            else
-            {
-                bool res = false;
-
-                if (value == null || value == DBNull.Value)
-                    res = false;
                 else
                 {
-                    var val = value.ToString();
-                    switch (val.ToLowerInvariant())
+                    //Making an assumption here about the format of dates in the source data.
+                    isValid = DateTime.TryParseExact(value.ToString(), "yyyy-MM-dd", new System.Globalization.CultureInfo("en-US"), System.Globalization.DateTimeStyles.AssumeLocal, out date);
+                    if (isValid)
                     {
-                        case "1":
-                        case "y":
-                        case "yes":
-                        case "true":
-                            res = true;
-                            break;
-
-                        case "0":
-                        case "n":
-                        case "no":
-                        case "false":
-                        default:
-                            res = false;
-                            break;
+                        prop.SetValue(entity, date, null);
                     }
                 }
-                prop.SetValue(entity, res, null);
             }
+
+            public virtual void ParseBoolean<T>(PropertyInfo prop, T entity, object value)
+            {
+                var type = prop.PropertyType;
+                bool resul;
+
+                if (value != null && !string.IsNullOrEmpty(value.ToString()) && bool.TryParse(value.ToString(), out resul))
+                {
+                    prop.SetValue(entity, resul, null);
+                }
+                else
+                {
+                    bool res = false;
+
+                    if (value == null || value == DBNull.Value)
+                    {
+                        prop.SetValue(entity, null, null);
+                        return;
+                    }
+                    else
+                    {
+                        var val = value.ToString();
+                        switch (val.ToLowerInvariant())
+                        {
+                            case "1":
+                            case "y":
+                            case "yes":
+                            case "true":
+                                res = true;
+                                break;
+
+                            case "0":
+                            case "n":
+                            case "no":
+                            case "false":
+                            default:
+                                res = false;
+                                break;
+                        }
+                    }
+                    prop.SetValue(entity, res, null);
+                }
+            }
+
+            public virtual void ParseEnum<T>(PropertyInfo prop, T entity, object value, bool isNullable)
+            {
+                if (isNullable)
+                {
+                    var type = prop.PropertyType.GetGenericArguments().First();
+                    var enumValue = value == null ? null : Enum.ToObject(type, Enum.Parse(type, value.ToString(), true));
+                    prop.SetValue(entity, enumValue, null);
+                }
+                else
+                {
+                    if (value != null && !string.IsNullOrEmpty(value.ToString()))
+                        prop.SetValue(entity, Enum.ToObject(prop.PropertyType, Enum.Parse(prop.PropertyType, value.ToString(), true)), null);
+                }
+            }
+
         }
 
-        public virtual void ParseEnum<T>(PropertyInfo prop, T entity, object value, bool isNullable)
-        {
-            if (isNullable)
-            {
-                 var type = prop.PropertyType.GetGenericArguments().First();
-                 var enumValue = value == null ? null: Enum.ToObject(type, Enum.Parse(type, value.ToString(), true));  prop.SetValue(entity, enumValue, null);
-            }
-            else
-            {
-                if (value != null && !string.IsNullOrEmpty(value.ToString()))
-                    prop.SetValue(entity, Enum.ToObject(prop.PropertyType, Enum.Parse(prop.PropertyType, value.ToString(), true)), null);
-            }
-        }
 
     }
-
 }
